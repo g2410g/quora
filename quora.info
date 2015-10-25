@@ -1,3 +1,4 @@
 name = Quora
 description = Related Questions of Quora in widgets
 core = 7.x
+configure = admin/config/quora
