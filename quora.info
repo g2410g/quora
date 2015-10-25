@@ -1,4 +1,5 @@
 name = Quora
 description = Related Questions of Quora in widgets
 core = 7.x
+dependencies[] = entity
 configure = admin/config/quora
