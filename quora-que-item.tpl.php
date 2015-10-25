@@ -1,3 +1,10 @@
+<?php
+/**
+ * @file
+ * Prints an quora question/post.
+ */
+?>
+
 <p><div class="quora-title" >
   <a href = <?php print $url; ?> target="_blank">
     <?php print $title; ?>
