@@ -58,6 +58,7 @@ function quora_theme($existing, $type, $theme, $path) {
 function quora_block_info() {
   $blocks['quora_block'] = array(
     'info' => 'Related Quora Questions',
+    'cache' => DRUPAL_CACHE_PER_PAGE,
   );
   return $blocks;
 }
