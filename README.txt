@@ -78,6 +78,9 @@ RECOMMENDED MODULES
   plugin under Widgets section. Quora plugin allows user to use the
   quora feature separately for each panel.
 
+* Panels Hash Cache
+  This module provides a hash-based cache for Panels and other Chaos Tools powered displays.
+
 
 FAQ
 ---
