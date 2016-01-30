@@ -1,0 +1,4 @@
+name: Quora
+type: module
+description: 'Related Questions of Quora in widgets.'
+core: 8.x
