@@ -1,119 +1,14 @@
 <?php
-/**
- * @file
- * Contains block, theme, hooks for Quora module.
- */
-
-/**
- * Implements hook_help().
- */
-function quora_help($path, $arg) {
-  switch ($path) {
-    case 'admin/help#quora':
-      $output = file_get_contents(drupal_get_path('module', 'quora') . '/README.txt');
-      return $output;
-  }
-}
-
-/**
- * Implements hook_ctools_plugin_directory().
- */
-function quora_ctools_plugin_directory($module, $plugin) {
-  if (($module == 'ctools') && ($plugin == 'content_types')) {
-    return 'plugins/content_types';
-  }
-}
-
-/**
- * Implements hook_menu().
- */
-function quora_menu() {
-
-  // Menu item for module configurations.
-  $items['admin/config/quora'] = array(
-    'title' => 'Quora Configuration',
-    'description' => 'Configure quora for content types.',
-    'page callback' => 'drupal_get_form',
-    'page arguments' => array('quora_config_form'),
-    'access arguments' => array('administer site configuration'),
-    'file' => 'quora.admin.inc',
-  );
-  return $items;
-}
 
 /**
  * Implements hook_theme().
  */
 function quora_theme($existing, $type, $theme, $path) {
   return array(
-    'quora_que_item' => array(
-      'template' => 'quora-que-item',
+    'quora_results' => array(
+      'variables' => array('results' => NULL),
     ),
   );
-}
-
-/**
- * Implements hook_block_info().
- */
-function quora_block_info() {
-  $blocks['quora_block'] = array(
-    'info' => 'Related Quora Questions',
-    'cache' => DRUPAL_CACHE_PER_PAGE,
-  );
-  return $blocks;
-}
-
-/**
- * Implements hook_block_configure().
- */
-function quora_block_configure($delta = '') {
-  $form = array();
-  if ($delta == 'quora_block') {
-    _quora_settings_form('block', $form);
-  }
-  return $form;
-}
-
-/**
- * Implements hook_block_save().
- */
-function quora_block_save($delta = '', $edit = array()) {
-  if ($delta == 'quora_block') {
-    variable_set('quora_no_questions', $edit['quora_no_questions']);
-    variable_set('quora_description', $edit['quora_description']);
-    variable_set('quora_description_size', $edit['quora_description_size']);
-    variable_set('quora_search_sensitivity', $edit['quora_search_sensitivity']);
-    variable_set('quora_include', $edit['quora_include']);
-    variable_set('quora_exclude', $edit['quora_exclude']);
-  }
-}
-
-/**
- * Implements hook_block_view().
- */
-function quora_block_view($delta = '') {
-  $block = array();
-  switch ($delta) {
-    case 'quora_block':
-      if (user_access('access content')) {
-        $block['subject'] = t('Quora');
-        $block['content'] = _quora_content();
-      }
-      break;
-  }
-  return $block;
-}
-
-/**
- * Returns content for block.
- */
-function _quora_content() {
-  // Getting available contexts from menu.
-  $context = menu_get_object();
-  if (!($context && isset($context->nid))) {
-    return NULL;
-  }
-  return _quora_build_content('block', $context);
 }
 
 /**
@@ -212,11 +107,13 @@ function _quora_build_content($callby, $node, $conf = NULL) {
  * Returns field which will be used as tag field by quora.
  */
 function _quora_fetch_field($node) {
-  $mapped_field = variable_get('quora_' . $node->type . '_field', FALSE);
-  if (isset($node->{$mapped_field}) && !empty($node->{$mapped_field})) {
+  $mapped_field = \Drupal::config('quora.admin')->get('quora_' . $node->getType() . '_field');
+  $mapped_field_val = $node->{$mapped_field}->getValue();
+  $field_tags_val = $node->field_tags->getValue();
+  if (isset($mapped_field_val) && !empty($mapped_field_val)) {
     return $mapped_field;
   }
-  elseif (isset($node->field_tags) && !empty($node->field_tags)) {
+  elseif (isset($field_tags_val) && !empty($field_tags_val)) {
     return 'field_tags';
   }
   else {
@@ -228,7 +125,7 @@ function _quora_fetch_field($node) {
  * Returns array of preprocessed tags according to sensitivity.
  */
 function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = NULL) {
-  $data = entity_metadata_wrapper('node', $node)->{$quora_tag_field}->value();
+  $data = $node->{$quora_tag_field}->getValue();
   // Formation of Data string.
   switch (gettype($data)) {
     case 'string':
@@ -237,8 +134,8 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
 
     case 'array':
       $str = '';
-      if (isset($data['value'])) {
-        $str = $data['value'];
+      if (isset($data[0]['value'])) {
+        $str = $data[0]['value'];
       }
       else {
         foreach ($data as $term) {
@@ -252,9 +149,11 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
         $data = $str;
       }
       else {
-        watchdog('quora', 'Unsupported fieldtype selected as quora_tag_field', array(), WATCHDOG_NOTICE, 'link');
+        \Drupal::logger('quora')->notice('Unsupported fieldtype selected as quora_tag_field',
+          array(
+          ));
         // Selecting title as quora_tag_field.
-        $data = entity_metadata_wrapper('node', $node)->title->value();
+        $data = $node->title->getValue();
       }
       break;
 
@@ -269,16 +168,21 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
         $data = $str;
       }
       else {
-        watchdog('quora', 'Unsupported fieldtype selected as quora_tag_field', array(), WATCHDOG_NOTICE, 'link');
+        \Drupal::logger('quora')->notice('Unsupported fieldtype selected as quora_tag_field',
+          array(
+          ));
         // Selecting title as quora_tag_field.
-        $data = entity_metadata_wrapper('node', $node)->title->value();
+        $data = $node->title->getValue();
       }
       break;
 
     default:
-      watchdog('quora', 'Unsupported fieldtype selected as quora_tag_field', array(), WATCHDOG_NOTICE, 'link');
+      \Drupal::logger('quora')->notice('Unsupported fieldtype selected as quora_tag_field',
+        array(
+        ));
       // Selecting title as quora_tag_field.
-      $data = entity_metadata_wrapper('node', $node)->title->value();
+      $data = $node->title->getValue();
+      //dsm($data);
       break;
   }
   return $data;
@@ -288,9 +192,12 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
  * Filters tag terms based on user defined options.
  */
 function _quora_filter_tag_terms($callby, &$data, $conf) {
+  //dsm($data);
   // We have string in variable data.
   $data = preg_replace('/[^\p{L}\p{N}\ ]/', '', $data);
+  //dsm($data);
   $data = str_replace(_quora_preprocess_prepare_exclude_arr($callby, $conf), '', $data);
+  //dsm($data);
   $data = _quora_preprocess_sensitivity($callby, $data, $conf);
   $data .= ' ' . _quora_preprocess_prepare_include_arr($callby, $conf);
   $data = preg_replace('/\s+/', ' ', $data);
@@ -301,8 +208,11 @@ function _quora_filter_tag_terms($callby, &$data, $conf) {
  * Helper function for preprocessor to build exclude list.
  */
 function _quora_preprocess_sensitivity($callby, $data, $conf = NULL) {
+  //dsm($data);
   $terms = explode(' ', $data);
+  //dsm($terms);
   $count = count($terms);
+  //dsm($count);
   switch (_quora_default($callby, 'search_sensitivity', $conf)) {
 
     case 1:
@@ -366,8 +276,11 @@ function _quora_preprocess_prepare_include_arr($callby, $conf = NULL) {
 function _quora_search_web($query) {
   $query .= " site:quora.com";
   $query = trim($query);
-  $api = variable_get('quora_google_cse_api');
-  $cx = variable_get('quora_google_cse_cx');
+
+  $config = \Drupal::config('quora.admin');
+
+  $api = $config->get('quora_google_cse_api');
+  $cx = $config->get('quora_google_cse_cx');
   if ($api && $cx) {
     // Use api to get results.
     $gs_results = json_decode(@file_get_contents('https://www.googleapis.com/customsearch/v1?key=' . $api . '&cx=' . $cx . '&q=' . urlencode($query)));
@@ -394,7 +307,10 @@ function _quora_search_web($query) {
     }
   }
   else {
-    watchdog('quora', 'Unable to fetch results with query @query', array('@query' => urlencode($query)), WATCHDOG_ERROR, 'link');
+    \Drupal::logger('quora')->error('Unable to fetch results with query @query',
+      array(
+        '@query' => urlencode($query)
+      ));
     return FALSE;
   }
   return $q_results;
@@ -419,13 +335,8 @@ function _quora_process_results($callby, $results, $conf = NULL) {
       }
     }
   }
-  foreach ($results as $item) {
-    $content[] = array(
-      '#type' => 'markup',
-      '#markup' => theme('quora_que_item', $item),
-    );
-  }
-  return $content;
+
+  return $results;
 }
 
 /**
@@ -440,7 +351,7 @@ function _quora_default($callby, $key, $conf = NULL) {
       break;
 
     case 'block':
-      $admin_setting = variable_get('quora_' . $key, FALSE);
+      $admin_setting = \Drupal::config('quora.admin')->get('quora_' . $key);
       break;
   }
   if ($admin_setting) {
