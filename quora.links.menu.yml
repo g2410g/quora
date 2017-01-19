@@ -1,0 +1,3 @@
+quora.admin:
+  title: Quora Admin Form
+  route_name: quora.quora_admin_settings
