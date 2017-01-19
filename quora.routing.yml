@@ -1,7 +1,7 @@
-quora.settings:
-  path: '/admin/config/quora'
+quora.quora_admin_settings:
+  path: 'admin/config/quora'
   defaults:
-    _form: '\Drupal\quora\Form\QuoraAdminForm'
-    _title: 'Quora Configuration'
+    _form: '\Drupal\quora\Form\QuoraConfigForm'
+    _title: 'Quora'
   requirements:
     _permission: 'administer site configuration'
