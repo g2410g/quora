@@ -4,6 +4,22 @@
  * @file
  */
 
+use Drupal\Core\Routing\RouteMatchInterface;
+/**
+ * Implements hook_help().
+ */
+function quora_help($route_name, RouteMatchInterface $route_match) {
+  switch ($route_name) {
+    case 'help.page.quora':
+      $output = file_get_contents(drupal_get_path('module', 'quora') . '/README.txt');
+      $output .= '<h4>Quora administration pages</h4>';
+      $output .= '<ul><li>';
+      $output .= '<a href="/admin/config/quora">Quora Configuration</a>';
+      $output .= '</ul></li>';
+      return $output;
+  }
+}
+
 /**
  * Implements hook_theme().
  */
