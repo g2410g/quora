@@ -1,6 +1,10 @@
 <?php
 
 /**
+ * @file
+ */
+
+/**
  * Implements hook_theme().
  */
 function quora_theme($existing, $type, $theme, $path) {
@@ -102,7 +106,6 @@ function _quora_build_content($callby, $node, $conf = NULL) {
   return _quora_process_results($callby, $results, $conf);
 }
 
-
 /**
  * Returns field which will be used as tag field by quora.
  */
@@ -150,8 +153,7 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
       }
       else {
         \Drupal::logger('quora')->notice('Unsupported fieldtype selected as quora_tag_field',
-          array(
-          ));
+          array());
         // Selecting title as quora_tag_field.
         $data = $node->title->getValue();
       }
@@ -169,8 +171,7 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
       }
       else {
         \Drupal::logger('quora')->notice('Unsupported fieldtype selected as quora_tag_field',
-          array(
-          ));
+          array());
         // Selecting title as quora_tag_field.
         $data = $node->title->getValue();
       }
@@ -178,11 +179,9 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
 
     default:
       \Drupal::logger('quora')->notice('Unsupported fieldtype selected as quora_tag_field',
-        array(
-        ));
+        array());
       // Selecting title as quora_tag_field.
       $data = $node->title->getValue();
-      //dsm($data);
       break;
   }
   return $data;
@@ -192,27 +191,20 @@ function _quora_preprocess_tag_terms($callby, $node, $quora_tag_field, $conf = N
  * Filters tag terms based on user defined options.
  */
 function _quora_filter_tag_terms($callby, &$data, $conf) {
-  //dsm($data);
   // We have string in variable data.
   $data = preg_replace('/[^\p{L}\p{N}\ ]/', '', $data);
-  //dsm($data);
   $data = str_replace(_quora_preprocess_prepare_exclude_arr($callby, $conf), '', $data);
-  //dsm($data);
   $data = _quora_preprocess_sensitivity($callby, $data, $conf);
   $data .= ' ' . _quora_preprocess_prepare_include_arr($callby, $conf);
   $data = preg_replace('/\s+/', ' ', $data);
 }
 
-
 /**
  * Helper function for preprocessor to build exclude list.
  */
 function _quora_preprocess_sensitivity($callby, $data, $conf = NULL) {
-  //dsm($data);
   $terms = explode(' ', $data);
-  //dsm($terms);
   $count = count($terms);
-  //dsm($count);
   switch (_quora_default($callby, 'search_sensitivity', $conf)) {
 
     case 1:
@@ -309,7 +301,7 @@ function _quora_search_web($query) {
   else {
     \Drupal::logger('quora')->error('Unable to fetch results with query @query',
       array(
-        '@query' => urlencode($query)
+        '@query' => urlencode($query),
       ));
     return FALSE;
   }

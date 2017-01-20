@@ -1,9 +1,5 @@
 <?php
 
-/**
- * @file
- * Contains \Drupal\article\Plugin\Block\XaiBlock.
- */
 namespace Drupal\quora\Plugin\Block;
 
 use Drupal\Core\Block\BlockBase;
@@ -68,4 +64,5 @@ class QuoraContent extends BlockBase {
     $this->setConfigurationValue('quora_include', $form_state->getValue('quora_include'));
     $this->setConfigurationValue('quora_exclude', $form_state->getValue('quora_exclude'));
   }
+
 }

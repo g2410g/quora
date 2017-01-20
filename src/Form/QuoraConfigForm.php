@@ -6,11 +6,17 @@ use Drupal\Core\Form\ConfigFormBase;
 use Drupal\Core\Form\FormStateInterface;
 use Drupal\node\Entity\NodeType;
 
-class QuoraConfigForm  extends ConfigFormBase {
+/**
+ * Admin form for setting Google Api and CX ID.
+ */
+class QuoraConfigForm extends ConfigFormBase {
 
+  /**
+   * {@inheritdoc}
+   */
   public function getFormId() {
-   return 'quora_admin_settings';
- }
+    return 'quora_admin_settings';
+  }
 
   /**
    * {@inheritdoc}
@@ -18,7 +24,10 @@ class QuoraConfigForm  extends ConfigFormBase {
   public function getEditableConfigNames() {
     return 'quora.admin';
   }
-  
+
+  /**
+   * Returns Admin Form.
+   */
   public function buildForm(array $form, FormStateInterface $form_state) {
 
     $config = \Drupal::config('quora.admin');
@@ -43,8 +52,6 @@ class QuoraConfigForm  extends ConfigFormBase {
     );
     foreach (NodeType::loadMultiple() as $content_type) {
       $fields = \Drupal::service('entity_field.manager')->getFieldDefinitions('node', $content_type->get('type'));
-//      kint(\Drupal::service('entity_field.manager'));
-//      exit();
       if ($fields) {
         $options = array();
         foreach ($fields as $id => $field) {
@@ -61,6 +68,9 @@ class QuoraConfigForm  extends ConfigFormBase {
     return parent::buildForm($form, $form_state);
   }
 
+  /**
+   * Submit function for Admin Form.
+   */
   public function submitForm(array &$form, FormStateInterface $form_state) {
     $form_values = $form_state->getValues();
     $google_cse_api = $form_values['quora_google_cse_api'];
@@ -75,4 +85,5 @@ class QuoraConfigForm  extends ConfigFormBase {
     }
     parent::submitForm($form, $form_state);
   }
+
 }
